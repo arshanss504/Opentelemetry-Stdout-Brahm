@@ -1,0 +1,20 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml  # Store positions inside a writable location
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push  # Change if Loki is running elsewhere
+  
+scrape_configs:
+  - job_name: "windows-desktop-logs"
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: "windows_desktop_logs"
+          host: "my-windows-pc"
+          __path__: /logs/*  # This must match the mounted volume inside the container
+

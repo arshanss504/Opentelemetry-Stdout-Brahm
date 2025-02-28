@@ -1,0 +1,54 @@
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4318:4318"   
+      - "8889:8889"  
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+      
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "14268:14268"
+      - "16686:16686"
+    depends_on:
+      - otel-collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true 
+
+
+  promtail:
+      image: grafana/promtail:latest
+      
+      volumes:
+        - C:/Users/91790/Desktop/OpentelemetrySetup-Metrics-Traces-Logs-Arshaan-main/OpentelemetrySetup-Metrics-Traces-Logs-Arshaan-main/promtail-config.yml:/etc/promtail/promtail-config.yaml  # Mount config file
+        - D:/logs:/logs  # Mount log file
+        - D:/positions:/tmp  # Store positions file
+      command: -config.file=/etc/promtail/promtail-config.yaml
+      restart: unless-stopped
+      
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
